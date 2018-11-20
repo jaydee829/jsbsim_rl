@@ -1,0 +1,81 @@
+# From:
+# https://raw.githubusercontent.com/ufoym/deepo/master/docker/Dockerfile.all-py36-cu90
+#
+# ==================================================================
+# module list
+# ------------------------------------------------------------------
+# python        3.6    (apt)
+# tensorflow    latest (pip)
+# theano        latest (git)
+# keras         latest (pip)
+# opencv        3.4.3  (git)
+# ==================================================================
+#
+FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
+
+ENV APT_INSTALL="apt-get install -y --no-install-recommends"
+ENV PIP_INSTALL="python -m pip --no-cache-dir install --upgrade" 
+ENV GIT_CLONE="git clone --depth 10" 
+
+
+RUN rm -rf /var/lib/apt/lists/* \
+           /etc/apt/sources.list.d/cuda.list \
+           /etc/apt/sources.list.d/nvidia-ml.list && \
+    apt-get update 
+
+# ==================================================================
+# tools
+# ------------------------------------------------------------------
+
+RUN    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        build-essential \
+        ca-certificates \
+        cmake \
+        wget \
+        git \
+        vim 
+        
+
+# ==================================================================
+# python
+# ------------------------------------------------------------------
+
+RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        software-properties-common 
+  
+RUN echo deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu xenial main > /etc/apt/sources.list.d/deadsnakes-ppa-trusty.list
+      
+RUN    add-apt-repository ppa:deadsnakes/ppa 
+RUN    apt-get update 
+RUN    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        python3.6 \
+        python3.6-dev 
+        
+RUN    wget -O ~/get-pip.py \
+        https://bootstrap.pypa.io/get-pip.py && \
+    python3.6 ~/get-pip.py && \
+    ln -s /usr/bin/python3.6 /usr/local/bin/python3 && \
+    ln -s /usr/bin/python3.6 /usr/local/bin/python && \
+    $PIP_INSTALL \
+        setuptools 
+        
+RUN    $PIP_INSTALL \
+        numpy \
+        scipy \
+        pandas \
+        cloudpickle \
+        scikit-learn \
+        matplotlib \
+        Cython 
+        
+# ==================================================================
+# tensorflow
+# ------------------------------------------------------------------
+
+RUN    $PIP_INSTALL \
+        tensorflow-gpu 
+        
+RUN python -c 'import tensorflow as tf; print(tf.__version__)'
+
+
+

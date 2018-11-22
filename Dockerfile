@@ -326,6 +326,7 @@ RUN pip install joblib
 # you must install python3.6-tk.  python3-tk doesn't work.
 RUN apt install -y python3.6-tk
 RUN pip install mpi4py
+RUN apt install -y dos2unix
 
 
 WORKDIR /home/jsbsim
@@ -367,7 +368,6 @@ COPY --chown=jsbsim:jsbsim ./*.py /home/jsbsim/
 
 # Fix permissions on any *.sh file
 WORKDIR /home/jsbsim/
-RUN apt install dos2unix
 RUN dos2unix *.sh
 RUN chmod a+x *.sh
 

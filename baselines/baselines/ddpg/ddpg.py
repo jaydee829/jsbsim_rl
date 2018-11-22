@@ -12,6 +12,7 @@ import baselines.common.tf_util as U
 
 from baselines import logger
 import numpy as np
+import tensorflow as tf
 
 try:
     from mpi4py import MPI
@@ -97,6 +98,17 @@ def learn(network, env,
     eval_episode_rewards_history = deque(maxlen=100)
     episode_rewards_history = deque(maxlen=100)
     sess = U.get_session()
+
+    logdir = logger.get_dir()
+    saver = tf.train.Saver()
+    try:
+        logger.info("Restoring from saved model")
+        saver = tf.train.import_meta_graph(logdir + "/ddpg_test_model.meta")
+        saver.restore(sess, tf.train.latest_checkpoint(logdir))
+    except OSError:
+        logger.info("Starting from scratch!")
+        sess.run(tf.global_variables_initializer()) # this should happen here and not in the agent right?
+
     # Prepare everything.
     agent.initialize(sess)
     sess.graph.finalize()
@@ -261,6 +273,15 @@ def learn(network, env,
             logger.dump_tabular()
         logger.info('')
         logdir = logger.get_dir()
+
+        # Saving the trained model
+        if(saver is not None):
+            logger.info("saving the trained model")
+            start_time_save = time.time()
+            saver.save(sess, logdir + "/ddpg_test_model")
+            logger.info('runtime saving: {}s'.format(time.time() - start_time_save))
+
+
 
         if rank == 0 and logdir:
             if hasattr(env, 'get_state'):

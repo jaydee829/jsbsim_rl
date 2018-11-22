@@ -296,12 +296,19 @@ class FlightGearVisualiser(object):
         flight_model_type_arg = '--fdm=' + 'external'
         disable_ai_arg = '--disable-ai-traffic'
         disable_fuel_arg = '--enable-fuel-freeze'
+        enable_scenery = '--enable-terrasync'
         disable_live_weather_arg = '--disable-real-weather-fetch'
-        time_of_day_arg = '--timeofday=' + FlightGearVisualiser.TIME
+        #time_of_day_arg = '--timeofday=' + FlightGearVisualiser.TIME
+        time_of_day_arg = '--timeofday=noon'
+        stop_clock = '--enable-clock-freeze'
         return (flightgear_cmd, aircraft_arg, flight_model_arg,
-                flight_model_type_arg, disable_ai_arg, disable_fuel_arg,
+                flight_model_type_arg,
+                enable_scenery,
+                disable_ai_arg,
+                disable_fuel_arg,
                 disable_live_weather_arg,
-                time_of_day_arg)
+                time_of_day_arg,
+                stop_clock)
 
     def _block_until_flightgear_loaded(self):
         while True:

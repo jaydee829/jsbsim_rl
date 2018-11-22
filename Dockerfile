@@ -325,6 +325,7 @@ RUN pip install joblib
 # OpenAI gym (or maybe the atari gym) requires tkinter.  Note that with python3.6
 # you must install python3.6-tk.  python3-tk doesn't work.
 RUN apt install -y python3.6-tk
+RUN pip install mpi4py
 
 
 WORKDIR /home/jsbsim
@@ -356,7 +357,6 @@ COPY --chown=jsbsim:jsbsim ./gym-jsbsim /home/jsbsim/gym-jsbsim
 RUN pip install -e gym-jsbsim
 
 # Install the gym-jsbsim python module from source
-RUN pip install mpi4py
 WORKDIR /home/jsbsim/
 COPY --chown=jsbsim:jsbsim ./stable-baselines /home/jsbsim/stable-baselines
 RUN pip install -e stable-baselines

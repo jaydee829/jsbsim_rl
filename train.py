@@ -23,7 +23,7 @@ try:
 
 except ValueError:  # Model doesn't exist
 
-    model = DDPG(MlpPolicy, env, verbose=1, param_noise=param_noise, action_noise=action_noise, tensorboard_log="model/tensorboard/")
+    model = DDPG(MlpPolicy, env, verbose=1, param_noise=param_noise, action_noise=action_noise, normalize_observations=True, tensorboard_log="model/tensorboard/")
 
 while True:
     model.learn(total_timesteps=1e6)

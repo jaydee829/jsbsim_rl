@@ -1,4 +1,6 @@
 
+export GYM_JSBSIM_RENDER_MODE=human
+
 cd baselines
 python -m baselines.run --alg=ddpg \
        --env=JSBSim-TurnHeadingControlTask-Cessna172P-Shaping.STANDARD-NoFG-v0 \

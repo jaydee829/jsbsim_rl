@@ -14,8 +14,7 @@ JSBSim is an open source flight dyamics simulator that the open source flight si
      * openai baselines
      * stable-baselines
 
-# Implementation Notes:
-Repo not currently cleaned up and doing heavy development on this right now.  Sharing it to collaborate with others.
+# Usage
 
 I'm using both openai baselines and stable-baselines (a fork of openai baselines), trying to
 decide which I like best.  stable-baselines has a number of software engineering-y improvements
@@ -23,26 +22,17 @@ and consistency across modules that make it potentially a better place to start 
 also very actively developed (as of Nov 2018) and responsive compared to the openai github
 repo.
 
+## OpenAI Baselines Usage
+
 In the root dir, there are train.sh / replay.sh which are meant to use openai baselines code.
-However, openai baselines doesn't implement save/load for DDPG, so it doesn't actually work.
-I have added in checkpointing but I'm not confident it is actually working yet.
+However, openai baselines doesn't implement save/load for DDPG.  I have added in checkpointing 
+but I'm not confident it is actually working yet.
+
+## Stable-Baselines Usage
 
 train.py and eval.py are the corresponding scripts for stable-baselines, which does implement
 save / load for all algorithms.  It has some minor bugs related to checkpointing, but
 I'm working them with the maintainers.
-
-For now, I'm pulling in other repos into this repo because I'm freely making changes to them.
-At some point I may make pull requests for my changes in the original repos and drop the
-copy in this repo, but I'll probably do that once things are stable.
-
-Currently I have gym-jsbsim integrated with openai baselines and I'm able to run training against
-jsbsim.  From the tensorboard plots, it looks like it is training successfully.  I'm working on
-getting trained model to fly against flightgear (with jsbsim as the underlying sim) within
-the image to validate that the trained model flies the airplane well.
-
-# Usage
-
-Need to document this once it becomes more stable.
 
 # Docker Images
 
@@ -65,4 +55,30 @@ then let them run overnight or for extended runs, and reconnect the browser-base
 periodically to check on the progress of the runs.  I typically also create and mount docker
 volumes to preserve the logs and saved models which allows me to restart the docker containers
 without losing progress on training.
+
+# Implementation Notes:
+Repo not currently cleaned up and doing heavy development on this right now.  Sharing it to collaborate with others.
+
+I'm using both openai baselines and stable-baselines (a fork of openai baselines), trying to
+decide which I like best.  stable-baselines has a number of software engineering-y improvements
+and consistency across modules that make it potentially a better place to start from.  It's
+also very actively developed (as of Nov 2018) and responsive compared to the openai github
+repo.
+
+
+
+
+For now, I'm pulling in other repos into this repo because I'm freely making changes to them.
+At some point I may make pull requests for my changes in the original repos and drop the
+copy in this repo, but I'll probably do that once things are stable.
+
+Currently I have gym-jsbsim integrated with openai baselines and I'm able to run training against
+jsbsim.  From the tensorboard plots, it looks like it is training successfully.  I'm working on
+getting trained model to fly against flightgear (with jsbsim as the underlying sim) within
+the image to validate that the trained model flies the airplane well.
+
+# Collaboration Notes:
+
+If anyone out there is interested in collaborating on projects like this please reach out and let me know!  jrjbertram at g mail dot com.
+I'm a part time grad student and work in AI, but this is also just interesting.
 

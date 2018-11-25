@@ -325,7 +325,7 @@ RUN pip install joblib
 # OpenAI gym (or maybe the atari gym) requires tkinter.  Note that with python3.6
 # you must install python3.6-tk.  python3-tk doesn't work.
 RUN apt install -y python3.6-tk
-RUN pip install mpi4py zmq dill glob2 click progressbar2 seaborn opencv-python tqdm python-utils tensorflow ipython
+RUN pip install mpi4py zmq dill glob2 click progressbar2 seaborn opencv-python tqdm python-utils ipython
 RUN apt install -y dos2unix python3-dev swig
 RUN apt install -y python-pygame
 
@@ -385,6 +385,16 @@ RUN mkdir /home/jsbsim/model
 
 ENV OPENAI_LOGDIR=/home/jsbsim/logs
 ENV OPENAI_LOG_FORMAT=stdout,tensorboard
+
+# For some reason libcupti path is not added to LD library path during
+# cuda installs?
+ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
+
+# Set up our auxiliary command to run tensorboard in the background on port 8008
+# Found that this works better when you launch it from a shell from within the 
+# environment... that way you can kill the tensorboard if you need to and restart
+# it.
+#ENV AUX_CMD="tensorboard --logdir /home/jsbsim/model/ --port 8008"
 
 ENTRYPOINT ["/home/jsbsim/console_startup.sh"]
 CMD ["--wait"]

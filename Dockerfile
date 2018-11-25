@@ -325,11 +325,18 @@ RUN pip install joblib
 # OpenAI gym (or maybe the atari gym) requires tkinter.  Note that with python3.6
 # you must install python3.6-tk.  python3-tk doesn't work.
 RUN apt install -y python3.6-tk
-RUN pip install mpi4py
-RUN apt install -y dos2unix
-
+RUN pip install mpi4py zmq dill glob2 click progressbar2 seaborn opencv-python tqdm python-utils tensorflow ipython
+RUN apt install -y dos2unix python3-dev swig
+RUN apt install -y python-pygame
 
 WORKDIR /home/jsbsim
+
+RUN git clone https://github.com/pybox2d/pybox2d
+
+WORKDIR /home/jsbsim/pybox2d
+RUN python setup.py build
+RUN sudo python setup.py install
+
 
 ######################################
 # Now that all the non-varying things are installed that we need, let's bring
@@ -350,7 +357,6 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 # Bring in the openai baselines
 COPY --chown=jsbsim:jsbsim ./baselines /home/jsbsim/baselines
-ENV OPENAI_LOGDIR=/home/jsbsim/logs
 
 # Install the gym-jsbsim python module from source
 WORKDIR /home/jsbsim/
@@ -376,6 +382,9 @@ RUN chmod a+x *.sh
 RUN mkdir /home/jsbsim/model
 
 # JSBSim-TurnHeadingControlTask-Cessna172P-Shaping.STANDARD-NoFG-v0
+
+ENV OPENAI_LOGDIR=/home/jsbsim/logs
+ENV OPENAI_LOG_FORMAT=stdout,tensorboard
 
 ENTRYPOINT ["/home/jsbsim/console_startup.sh"]
 CMD ["--wait"]

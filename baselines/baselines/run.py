@@ -58,8 +58,9 @@ _game_envs['retro'] = {
 }
 
 
-def train(args, extra_args):
-    env_type, env_id = get_env_type(args.env)
+def train(args, extra_args, env_type=None, env_id=None, env=None ):
+    if env_id is None:
+        env_type, env_id = get_env_type(args.env)
     print('env_type: {}'.format(env_type))
 
     total_timesteps = int(args.num_timesteps)
@@ -69,7 +70,9 @@ def train(args, extra_args):
     alg_kwargs = get_learn_function_defaults(args.alg, env_type)
     alg_kwargs.update(extra_args)
 
-    env = build_env(args.env, args)
+    if env is None:
+        env = build_env(args.env, args)
+
     if args.save_video_interval != 0:
         env = VecVideoRecorder(env, osp.join(logger.Logger.CURRENT.dir, "videos"), record_video_trigger=lambda x: x % args.save_video_interval == 0, video_length=args.save_video_length)
 

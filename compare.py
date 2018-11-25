@@ -16,7 +16,7 @@ def parse_args():
 
     parser.add_argument('--baseline', required=False, choices=['openai', 'stable'], default='stable' )
     parser.add_argument('--env',      required=False, choices=['lunar', 'jsbsim'], default='lunar' )
-    parser.add_argument('--algo',     required=False, choices=['ddpg'], default='ddpg' )
+    parser.add_argument('--algo',     required=False, choices=['ddpg', 'ppo2'], default='ddpg' )
     parser.add_argument('--mode',                     choices=['train', 'play'], default='train' )
     parser.add_argument('--steps',    type=float,  default=1e6)
     parser.add_argument('--prefix',                default=None )
@@ -41,8 +41,11 @@ except FileExistsError:
 os.environ[ 'OPENAI_LOGDIR' ] = basedir
 os.environ[ 'OPENAI_LOG_FORMAT' ] = 'stdout,tensorboard'
 
+reload_model = None
 
 if args.baseline == 'stable':
+    from stable_baselines.common.vec_env import DummyVecEnv
+
     # Necessary for it to generate tensorboard log files during the run.  Note that
     # in the docker file I set OPENAI_LOGDIR and OPENAI_LOG_FORMAT environment variables
     # to generate the kind of logs that I want.
@@ -55,10 +58,10 @@ if args.baseline == 'stable':
         import gym_jsbsim
 
         env = gym.make('JSBSim-TurnHeadingControlTask-Cessna172P-Shaping.STANDARD-FG-v0')
-        from stable_baselines.common.vec_env import DummyVecEnv
         env = DummyVecEnv([lambda: env])
     elif args.env == 'lunar':
         env = gym.make('LunarLanderContinuous-v2')
+        env = DummyVecEnv([lambda: env])
 
     if args.algo == 'ddpg':
         from stable_baselines.ddpg.policies import MlpPolicy
@@ -70,11 +73,31 @@ if args.baseline == 'stable':
         param_noise = None
         action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
 
+        def reload_ddpg_model():
+            return DDPG.load('%s/model.ckpt' % basedir, env=env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+
+        reload_model = reload_ddpg_model
+
         try:
-            model = DDPG.load('%s/model.ckpt' % basedir, env=env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+            model = reload_model()
             print( "Loaded model from file")
         except ValueError:  # Model doesn't exist
             model = DDPG(MlpPolicy, env, param_noise=param_noise, action_noise=action_noise, normalize_observations=True, tensorboard_log="%s/tb/" % basedir, verbose=1)
+    if args.algo == 'ppo2':
+        from stable_baselines import PPO2
+
+        def reload_ppo2_model():
+            return PPO2.load('%s/model.ckpt' % basedir, env=env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+
+        reload_model = reload_ppo2_model
+
+        # the noise objects for DDPG
+        try:
+            model = reload_model()
+            print( "Loaded model from file")
+        except ValueError:  # Model doesn't exist
+            from stable_baselines.common.policies import MlpPolicy
+            model = PPO2(MlpPolicy, env, tensorboard_log="%s/tb/" % basedir, verbose=1)
             print( "Created new model from scratch")
 
 else:  # openai baselines
@@ -117,9 +140,10 @@ else:  # openai baselines
 if args.baseline == 'stable':
     if args.mode == 'train':
         while True:
-            model.learn(total_timesteps=args.steps)
+            model.learn(total_timesteps=int(args.steps))
             print( "Saving checkpoint" )
             model.save('%s/model.ckpt' % basedir)
+            model = reload_model()
     else:
         obs = env.reset()
         while True:

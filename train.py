@@ -1,6 +1,8 @@
 import gym
 import numpy as np
 
+import argparse
+
 import jsbsim
 import gym_jsbsim
 
@@ -8,6 +10,12 @@ from stable_baselines.ddpg.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.ddpg.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 from stable_baselines import DDPG
+from stable_baselines import logger
+
+# Necessary for it to generate tensorboard log files during the run.  Note that
+# in the docker file I set OPENAI_LOGDIR and OPENAI_LOG_FORMAT environment variables
+# to generate the kind of logs that I want.
+logger.configure()
 
 env = gym.make('JSBSim-TurnHeadingControlTask-Cessna172P-Shaping.STANDARD-NoFG-v0')
 env = DummyVecEnv([lambda: env])

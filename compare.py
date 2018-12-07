@@ -16,7 +16,9 @@ def parse_args():
 
     parser.add_argument('--baseline', required=False, choices=['openai', 'stable'], default='stable' )
     parser.add_argument('--env',      required=False, choices=['lunar', 'jsbsim'], default='lunar' )
-    parser.add_argument('--algo',     required=False, choices=['ddpg', 'ppo2'], default='ddpg' )
+    parser.add_argument('--algo',     required=False, choices=[
+          'ddpg', 'ppo2', 'acer', 'acktr', 'a2c'],
+          default='ddpg' )
     parser.add_argument('--mode',                     choices=['train', 'play'], default='train' )
     parser.add_argument('--steps',    type=float,  default=1e6)
     parser.add_argument('--prefix',                default=None )
@@ -83,6 +85,7 @@ if args.baseline == 'stable':
             print( "Loaded model from file")
         except ValueError:  # Model doesn't exist
             model = DDPG(MlpPolicy, env, param_noise=param_noise, action_noise=action_noise, normalize_observations=True, tensorboard_log="%s/tb/" % basedir, verbose=1)
+
     if args.algo == 'ppo2':
         from stable_baselines import PPO2
 
@@ -99,6 +102,60 @@ if args.baseline == 'stable':
             from stable_baselines.common.policies import MlpPolicy
             model = PPO2(MlpPolicy, env, tensorboard_log="%s/tb/" % basedir, verbose=1)
             print( "Created new model from scratch")
+
+    if args.algo == 'a2c':
+        from stable_baselines import A2C
+
+        def reload_a2c_model():
+            return A2C.load('%s/model.ckpt' % basedir, env=env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+
+        reload_model = reload_a2c_model
+
+        # the noise objects for DDPG
+        try:
+            model = reload_model()
+            print( "Loaded model from file")
+        except ValueError:  # Model doesn't exist
+            from stable_baselines.common.policies import MlpPolicy
+            model = A2C(MlpPolicy, env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+            print( "Created new model from scratch")
+
+    if args.algo == 'acer':
+        from stable_baselines import ACER
+
+        def reload_acer_model():
+            return ACER.load('%s/model.ckpt' % basedir, env=env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+
+        reload_model = reload_acer_model
+
+        # the noise objects for DDPG
+        try:
+            model = reload_model()
+            print( "Loaded model from file")
+        except ValueError:  # Model doesn't exist
+            from stable_baselines.common.policies import MlpPolicy
+            model = ACER(MlpPolicy, env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+            print( "Created new model from scratch")
+
+    if args.algo == 'acktr':
+        from stable_baselines import ACKTR
+
+        def reload_acktr_model():
+            return ACKTR.load('%s/model.ckpt' % basedir, env=env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+
+        reload_model = reload_acktr_model
+
+        # the noise objects for DDPG
+        try:
+            model = reload_model()
+            print( "Loaded model from file")
+        except ValueError:  # Model doesn't exist
+            from stable_baselines.common.policies import MlpPolicy
+            model = ACKTR(MlpPolicy, env, tensorboard_log="%s/tb/" % basedir, verbose=1)
+            print( "Created new model from scratch")
+
+
+
 
 else:  # openai baselines
     import sys
@@ -147,7 +204,7 @@ if args.baseline == 'stable':
     else:
         obs = env.reset()
         while True:
-            action, _states = model.predict(obs)
+            action, _states = model.predict(obs, deterministic=True)
             obs, rewards, dones, info = env.step(action)
             env.render()
 

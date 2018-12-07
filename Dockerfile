@@ -337,6 +337,14 @@ WORKDIR /home/jsbsim/pybox2d
 RUN python setup.py build
 RUN sudo python setup.py install
 
+RUN sudo apt-get install libboost-all-dev -y
+
+RUN sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran -y
+RUN sudo apt-get update
+RUN sudo apt-get install libsdl-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsmpeg-dev libportmidi-dev libavformat-dev libswscale-dev -y
+RUN sudo apt-get install dpkg-dev build-essential python3.5-dev libjpeg-dev  libtiff-dev libsdl1.2-dev libnotify-dev freeglut3 freeglut3-dev libsm-dev libgtk2.0-dev libgtk-3-dev libwebkitgtk-dev libgtk-3-dev libwebkitgtk-3.0-dev libgstreamer-plugins-base1.0-dev -y
+
+RUN sudo -E apt-get install libav-tools libsdl2-dev swig cmake -y
 
 ######################################
 # Now that all the non-varying things are installed that we need, let's bring
@@ -368,6 +376,11 @@ WORKDIR /home/jsbsim/
 COPY --chown=jsbsim:jsbsim ./stable-baselines /home/jsbsim/stable-baselines
 RUN pip install -e stable-baselines
 
+# Bring in rl coach
+COPY --chown=jsbsim:jsbsim ./coach /home/jsbsim/coach
+RUN pip install -e coach
+
+
 # Bring in any helpful scripts we have written
 COPY --chown=jsbsim:jsbsim ./*.sh /home/jsbsim/
 COPY --chown=jsbsim:jsbsim ./*.py /home/jsbsim/
@@ -391,7 +404,7 @@ ENV OPENAI_LOG_FORMAT=stdout,tensorboard
 ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 
 # Set up our auxiliary command to run tensorboard in the background on port 8008
-# Found that this works better when you launch it from a shell from within the 
+# Found that this works better when you launch it from a shell from within the
 # environment... that way you can kill the tensorboard if you need to and restart
 # it.
 #ENV AUX_CMD="tensorboard --logdir /home/jsbsim/model/ --port 8008"

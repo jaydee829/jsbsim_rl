@@ -1,0 +1,65 @@
+import matplotlib
+matplotlib.use('TkAGG')
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+
+
+
+def tensorboard_plot(ax, x, y, xlabel='Episode', ylabel='Reward',
+                     params={'marker': ' ', 'color': 'b', 'linestyle': '-'}):
+    ax.plot(x, y, label='Raw', alpha=0.3, **params)
+    smooth_y = smooth(y, radius=10)
+    ax.plot(x, smooth_y, label='Smoothed', **params)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    out = ax.legend()
+    return out
+
+
+# Copied from baselines.common.plot_util since it wasn't importing correctly
+def smooth(y, radius, mode='two_sided', valid_only=False):
+    '''
+    Smooth signal y, where radius is determines the size of the window
+
+    mode='twosided':
+        average over the window [max(index - radius, 0), min(index + radius, len(y)-1)]
+    mode='causal':
+        average over the window [max(index - radius, 0), index]
+
+    valid_only: put nan in entries where the full-sized window is not available
+
+    '''
+    assert mode in ('two_sided', 'causal')
+    if len(y) < 2*radius+1:
+        return np.ones_like(y) * y.mean()
+    elif mode == 'two_sided':
+        convkernel = np.ones(2 * radius+1)
+        out = np.convolve(y, convkernel,mode='same') / np.convolve(np.ones_like(y), convkernel, mode='same')
+        if valid_only:
+            out[:radius] = out[-radius:] = np.nan
+    elif mode == 'causal':
+        convkernel = np.ones(radius)
+        out = np.convolve(y, convkernel,mode='full') / np.convolve(np.ones_like(y), convkernel, mode='full')
+        out = out[:-radius+1]
+        if valid_only:
+            out[:radius] = np.nan
+    return out
+
+
+filepath = ['/home/jsbsim/results/steady_heading/Cessna172', '/home/jsbsim/results/steady_heading/F15',
+            '/home/jsbsim/results/turn_heading/Cessna172', '/home/jsbsim/results/turn_heading/F15']
+
+for path in filepath:
+    for file in os.listdir(path):
+        if file.endswith('.csv'):
+            filename = path+'/'+file
+            data = pd.read_csv(filename)
+            ytype = file.split('.')[0].split('-')[-1].split('_')
+            ytype = [x.capitalize() for x in ytype]
+            ylabel = ' '.join(ytype)
+            fig, ax = plt.subplots(1,1)
+            tensorboard_plot(ax, data.Step, data.Value, ylabel=ylabel)
+            plt.savefig(filename.split('.')[0]+'.png')
+            plt.close()

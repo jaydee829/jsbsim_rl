@@ -1,0 +1,16 @@
+version: '3.2'
+services:
+  rl-jsb2_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8885:8888
+    user: 1000:1000
+    environment:
+      DISPLAY:
+    volumes:
+      - "/home/justin/RL_JSB2/jsbsim_rl:/home/jsbsim"
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+      - "/home/justin/RL_JSB2/jsbsim_rl/results:/home/jsbsim/results"
+      - "/home/justin/RL_JSB2/jsbsim_rl/logs:/home/jsbsim/logs"
